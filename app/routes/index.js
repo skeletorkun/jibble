@@ -14,7 +14,7 @@ import { getTypiCodeData, getTypiCodeCollection } from './typiProxy';
 // };
 
 const createCollection = (res) => {
-  
+  getTypiCodeCollection(['/posts', '/albums','/users'], res);
 };
 
 const simpleRoute = (app, path) => {

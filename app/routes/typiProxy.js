@@ -55,15 +55,44 @@ const handleError = (res, error) => {
   res.send({message: 'An error occurred ' + error.message});
 }
 
-const replyWithData = (res, data) =>{
+
+const replyWithData = (res, data) => {
 
   res.status(200);
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.send(data);
 }
 
+const cherryPick = (data) => {
+
+  let remaining = 30;
+  const collection = [];
+  
+  for(var i in data){
+    const arr = data[i];  
+    if(collection.length >= size) 
+      continue;
+    
+    remaining = size - collection.length;
+    let n = Math.round(Math.random() * remaining);
+    if(i == data.length - 1){
+      n = remaining;
+    }
+    console.log('n ' + n);
+    collection.push.apply(collection, arr.slice(0, n)); 
+  }
+  return collection;
+}
+
 export const getTypiCodeData = (path, res) => { 
   callTypiCode(path)
     .then(data => replyWithData(res, data))
     .catch(error => handleError(res, error));
+}
+
+export const getTypiCodeCollection = (paths, res) => {
+  const promises = paths.map((path) => callTypiCode(path));
+  Promise.all(promises)
+    .then((data) => replyWithData(res, cherryPick(data)))
+    .catch(error => handleError(res, error))
 }
