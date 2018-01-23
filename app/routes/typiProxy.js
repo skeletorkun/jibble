@@ -13,28 +13,50 @@ export const getRequest = (path) => {
           reject(err);
         }
         console.log('response.statusCode : ' + res.statusCode);
-        // console.log('body');
         resolve(body);
       });
   });
 }
 
-export const postRequest = (postData) => {
+export const makeRequest = (options, req) => {
+  var options = {
+    url: TYPI_URL + options.path,
+    method: options.method || 'GET',
+    headers:  {
+      "Content-type": "application/json; charset=UTF-8"
+    },
+    form: JSON.stringify(req.body) || {}
+  };
   return new Promise((resolve, reject) => {
-    request.
-      post(TYPI_URL + '/posts', postData, (err, res, body) => {
+    request(options, (err, res, body) => {
         if (err) {
           console.log(err);
           reject(err);
         }
         console.log('response.statusCode : ' + res.statusCode);
-        // console.log('body');
         resolve(body);
       })
-  }
+    }   
   );
 }
 
+export const putRequest = (req) => {
+  const postData = JSON.stringify(req.body);
+  const postId = req.params.postId;
+  console.log('putting id ' + postId); 
+  return new Promise((resolve, reject) => {
+    request.
+      put(TYPI_URL + '/posts', postData, (err, res, body) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+        console.log('response.statusCode : ' + res.statusCode);
+        resolve(body);
+      })
+    }
+  );
+}
 
 const divideRandomly = (total, count) => {
   let remaining = total;
