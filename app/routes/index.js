@@ -1,37 +1,41 @@
-import { getTypiCodeData, getTypiCodeCollection } from './typiProxy';
+import { getRequest, postRequest, getTypiCodeCollection } from './typiProxy';
+import { routeCollection } from './collection';
 
-// const httpPostOptions = (postData) => {
-//   return {
-//     host: 'https://jsonplaceholder.typicode.com',
-//     port: '80',
-//     path: '/posts',
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/x-www-form-urlencoded',
-//       'Content-Length': postData.length
-//     }
-//   }
-// };
+export const handleError = (res, error) => {
+  res.status(500);
+  res.send({ message: 'An error occurred ' + error.message });
+}
 
-const createCollection = (res) => {
-  getTypiCodeCollection(['/posts', '/albums','/users'], res);
-};
+export const replyWithData = (res, data) => {
+  res.status(200);
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.send(data);
+}
 
-const simpleRoute = (app, path) => {
-  app.get(path, (req,res) => getTypiCodeData(path, res));
+const handleGetRequest = (path, res) => {
+  getRequest(path)
+    .then(data => replyWithData(res, data))
+    .catch(error => handleError(res, error));
 }
 
 export const route = (app, db) => {
-    
   app.post('/posts', (req, res) => {
     console.log(req.body);
-    res.send('Hello');
+    const post = {
+      userId: 1,      
+      title: "Orkun's awesome post",
+      body: "here goes more gibberish"
+    };
+
+    postRequest('/posts', JSON.stringify(post))
+      .then(data => replyWithData(res, data))
+      .catch(error => handleError(res, error));
   });
-  
-  simpleRoute(app, '/posts');
-  simpleRoute(app, '/albums');
-  simpleRoute(app, '/users');
-  
-  app.get('/collection', (req, res) => createCollection(res));
-  
+
+  app.get('/posts', (req, res) => handleGetRequest('/posts', res));
+  app.get('/albums', (req, res) => handleGetRequest('/albums', res));
+  app.get('/users', (req, res) => handleGetRequest('/users', res));
+
+
+  routeCollection(app);
 }

@@ -1,98 +1,65 @@
-import https from 'https'
+import https from 'https';
+import request from 'request';
 
-const callTypiCode = (path) => {
-  
-  const httpGetOptions = {
-    host: 'jsonplaceholder.typicode.com',
-    path: path,
-    method: 'GET'
-  };
-  
+const TYPI_URL = 'https://jsonplaceholder.typicode.com';
+
+export const getRequest = (path) => {
   return new Promise((resolve, reject) => {
-    https.get(httpGetOptions, (res) => {
-      
-      const statusCode = res.statusCode;
-      const contentType = res.headers['content-type'];
+    request
+      .get(TYPI_URL + path, (err, res, body) => {
 
-      let error;
-      if (statusCode !== 200) {
-        error = new Error('Request Failed.\n' +
-                          `Status Code: ${statusCode}`);
-      } else if (!/^application\/json/.test(contentType)) {
-        error = new Error('Invalid content-type.\n' +
-                          `Expected application/json but received ${contentType}`);
-      }
-      if (error) {
-        console.log(error.message);
-        // consume response data to free up memory
-        res.resume();
-        reject(error);
-      }
-
-      res.setEncoding('utf8');
-      let rawData = '';
-      res.on('data', (chunk) => rawData += chunk);
-      res.on('end', () => {
-        try {
-          const parsedData = JSON.parse(rawData);
-          console.log('Got data from Typicode successfully.')
-          resolve(parsedData);
-        } catch (e) {
-          console.log(e.message);
-          reject(e);
+        if (err) {
+          console.log(err);
+          reject(err);
         }
+        console.log('response.statusCode : ' + res.statusCode);
+        // console.log('body');
+        resolve(body);
       });
-    }).on('error', (e) => {
-      console.log(`Got error: ${e.message}`);
-      reject(e);
-    });
   });
 }
 
-const handleError = (res, error) => {
-  
-  res.status(500);
-  res.send({message: 'An error occurred ' + error.message});
+export const postRequest = (postData) => {
+  return new Promise((resolve, reject) => {
+    request.
+      post(TYPI_URL + '/posts', postData, (err, res, body) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+        console.log('response.statusCode : ' + res.statusCode);
+        // console.log('body');
+        resolve(body);
+      })
+  }
+  );
 }
 
 
-const replyWithData = (res, data) => {
+const divideRandomly = (total, count) => {
+  let remaining = total;
+  let parts = [];
 
-  res.status(200);
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.send(data);
-}
-
-const cherryPick = (data) => {
-
-  let remaining = 30;
-  const collection = [];
-  
-  for(var i in data){
-    const arr = data[i];  
-    if(collection.length >= size) 
+  for (var i in count) {
+    if (collection.length >= total)
       continue;
-    
-    remaining = size - collection.length;
+
+    remaining = total - collection.length;
     let n = Math.round(Math.random() * remaining);
-    if(i == data.length - 1){
+    if (i == count) {
       n = remaining;
     }
     console.log('n ' + n);
-    collection.push.apply(collection, arr.slice(0, n)); 
+    parts.push(n);
   }
-  return collection;
+  return parts;
 }
 
-export const getTypiCodeData = (path, res) => { 
-  callTypiCode(path)
-    .then(data => replyWithData(res, data))
-    .catch(error => handleError(res, error));
-}
+export const getTypiCodeCollection = () => {
+  const counts = divideRandomly(30, 3);
+  const posts = getRequest('/posts').then(data => ({ posts: data }));
+  const albums = getRequest('/albums').then(data => ({ albums: data }));
+  const users = getRequest('/users').then(data => ({ users: data }));
 
-export const getTypiCodeCollection = (paths, res) => {
-  const promises = paths.map((path) => callTypiCode(path));
-  Promise.all(promises)
-    .then((data) => replyWithData(res, cherryPick(data)))
-    .catch(error => handleError(res, error))
+  return Promise.all([posts, albums, users]);
 }
