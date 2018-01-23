@@ -44,9 +44,9 @@ export const route = (app, db) => {
     handleRequest(options, req, res);
   });
 
-  app.get('/posts', (req, res) => handleGetRequest('/posts', res));
-  app.get('/albums', (req, res) => handleGetRequest('/albums', res));
-  app.get('/users', (req, res) => handleGetRequest('/users', res));
+  app.get('/posts', (req, res) => handleRequest({path: '/posts'}, req, res));
+  app.get('/albums', (req, res) => handleRequest({path: '/albums'}, req,  res));
+  app.get('/users', (req, res) => handleRequest({path: '/users'}, req, res));
 
   routeCollection(app);
 }
